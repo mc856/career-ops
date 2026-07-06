@@ -124,9 +124,12 @@ try {
   });
   const mkCtx = (impl) => {
     const calls = [];
+    const sleeps = [];
     return {
       calls,
+      sleeps,
       ctx: {
+        sleep: async (ms) => { sleeps.push(ms); },
         fetchJson: async (url) => {
           const u = new URL(url);
           const keyword = u.searchParams.get('keyword');
@@ -152,6 +155,12 @@ try {
     pass('tencent.fetch() paginates until Data.Count is exhausted (150 posts → 2 requests)');
   } else {
     fail(`tencent.fetch() pagination: ${pagedJobs.length} jobs, ${paged.calls.length} requests`);
+  }
+
+  if (paged.sleeps.length === 1 && paged.sleeps[0] > 0) {
+    pass('tencent.fetch() paces follow-up pages via ctx.sleep (no delay before page 1)');
+  } else {
+    fail(`tencent.fetch() ctx.sleep calls: ${JSON.stringify(paged.sleeps)}`);
   }
 
   const overlap = mkCtx(() => ({

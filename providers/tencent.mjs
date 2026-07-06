@@ -17,6 +17,8 @@ const API_PATH = '/tencentcareer/api/post/Query';
 const PAGE_SIZE = 100;
 const DEFAULT_KEYWORDS = [''];  // empty keyword = the whole board, no topical bias
 const DEFAULT_MAX_PAGES = 20;
+// Only boards that paginate past page 1 pay it (same idiom as avature/workday).
+const INTER_PAGE_DELAY_MS = 150;
 
 /** Parse "2026年06月23日" → epoch ms. NaN-safe. */
 function parseCnDate(value) {
@@ -98,9 +100,11 @@ export default {
 
     /** @type {Map<string, import('./_types.js').Job>} */
     const seen = new Map();
+    const sleep = (ms) => (typeof ctx?.sleep === 'function' ? ctx.sleep(ms) : new Promise((r) => setTimeout(r, ms)));
 
     for (const keyword of keywords) {
       for (let page = 1; page <= maxPages; page++) {
+        if (page > 1) await sleep(INTER_PAGE_DELAY_MS);
         const json = /** @type {any} */ (
           await ctx.fetchJson(buildUrl(keyword, page), { redirect: 'error' })
         );
