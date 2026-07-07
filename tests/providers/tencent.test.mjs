@@ -158,7 +158,7 @@ try {
   }
 
   if (paged.sleeps.length === 1 && paged.sleeps[0] > 0) {
-    pass('tencent.fetch() paces follow-up pages via ctx.sleep (no delay before page 1)');
+    pass('tencent.fetch() paces follow-up pages via ctx.sleep (no delay before the first request)');
   } else {
     fail(`tencent.fetch() ctx.sleep calls: ${JSON.stringify(paged.sleeps)}`);
   }
@@ -172,6 +172,12 @@ try {
     pass('tencent.fetch() dedupes the same job URL across keywords');
   } else {
     fail(`tencent.fetch() cross-keyword dedup: ${overlapJobs.length} jobs, ${overlap.calls.length} requests`);
+  }
+
+  if (overlap.sleeps.length === 1) {
+    pass('tencent.fetch() also paces keyword switches (page 1 of keyword 2 pays the delay)');
+  } else {
+    fail(`tencent.fetch() keyword-switch pacing: ${JSON.stringify(overlap.sleeps)}`);
   }
 
   const capped = mkCtx(() => ({
